@@ -8,6 +8,7 @@ var sass = require('gulp-sass');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
+let cleanCSS = require('gulp-clean-css');
 
 // 检查脚本
 gulp.task('lint', function() {
@@ -19,18 +20,38 @@ gulp.task('lint', function() {
         .pipe(jshint.reporter('default'));
 });
 
+//压缩css
+gulp.task('minify-css', () => {
+    return gulp.src([
+        'css/flexslider.css',
+        'css/jquery-fullsizable.css',
+        'css/jquery.mCustomScrollbar.min.css',
+        'css/all.css',
+       ])
+      .pipe(cleanCSS({compatibility: 'ie8'}))
+      .pipe(concat('all.min.css'))
+      .pipe(gulp.dest('css/'));
+  });
+
 // 编译Sass
 gulp.task('sass', function() {
     gulp.src('./scss/*.scss')
         .pipe(sass())
+        .pipe(concat('all.css'))
         .pipe(gulp.dest('./css'));
 });
 
 // 合并，压缩文件
 gulp.task('scripts', function() {
-    gulp.src('./js/*.js')
+    gulp.src([
+        './lib/jquery.min.js',
+        './lib/jquery.mousewheel.min.js',
+        './lib/jquery.touchSwipe.min.js',
+        './lib/jquery.mCustomScrollbar.min.js',
+        './lib/jquery.flexslider-min.js',
+        './lib/jquery.flexslider-min.js',
+        './js/*.js'])
         .pipe(concat('all.js'))
-        .pipe(gulp.dest('./dist'))
         .pipe(rename('all.min.js'))
         .pipe(babel({
           presets: ['env']
@@ -41,10 +62,10 @@ gulp.task('scripts', function() {
 
 // 默认任务
 gulp.task('default', function(){
-    gulp.run('lint', 'sass', 'scripts');
+    gulp.run('lint', 'sass', 'scripts','minify-css');
 
     // 监听文件变化
     gulp.watch(['./js/*.js','./scss/*.scss'], function(){
-        gulp.run('lint', 'sass', 'scripts');
+        gulp.run('lint', 'sass', 'scripts','minify-css');
     });
 });
